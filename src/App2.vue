@@ -42,14 +42,6 @@ import {
 
 registerHandlebarsHelpers(Handlebars);
 
-Handlebars.registerHelper("twitchEmote", (id, options) => {
-  let size = options.size ?? 1; // 1, 2, 3
-  let version = options.version ?? "1"; // always 1
-  let class_ = options.class ?? "";
-  let html = `<img src="https://static-cdn.jtvnw.net/emoticons/v${version}/${id}/${size}.0" class="${class_}">`;
-  return html;
-});
-
 export default {
   components: { "beeon-markup": BeeonMarkup },
   data() {
