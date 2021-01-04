@@ -2,8 +2,6 @@
   <div id="app">
     <h1>emotes test</h1>
 
-    <!-- 20201222 1200-1330 -->
-
     <p>
       size:
       <input type="number" step="1" min="1" max="3" v-model.number="size" />

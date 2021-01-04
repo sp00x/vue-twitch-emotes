@@ -32,19 +32,18 @@
 
 <script>
 import Handlebars from "handlebars";
-import BeeonMarkup from "@/components/BeeonMarkup.vue";
+import BeeonMarkupComp from "@/components/BeeonMarkup.vue";
 import {
-  toHTML,
-  toHandlebarsTemplate,
-  fromTwitchMessage,
+  BeeonMarkup,
   registerHandlebarsHelpers,
-  escape,
 } from "@/components/BeeonMarkup.js";
 
 registerHandlebarsHelpers(Handlebars);
 
+const markup = new BeeonMarkup();
+
 export default {
-  components: { "beeon-markup": BeeonMarkup },
+  components: { "beeon-markup": BeeonMarkupComp },
   data() {
     return {
       msg: {
@@ -56,21 +55,16 @@ export default {
   },
   computed: {
     markupText() {
-      return this.convertTwitchMessageToMarkup(this.msg);
+      return markup.fromTwitchMessage(this.msg);
     },
     renderedMarkup() {
-      return toHTML(this.markupText);
+      return markup.toHTML(this.markupText);
     },
     handlebarsTemplate() {
-      return toHandlebarsTemplate(this.markupText);
+      return markup.toHandlebarsTemplate(this.markupText);
     },
     handlebarsHTML() {
       return Handlebars.compile(this.handlebarsTemplate)({});
-    },
-  },
-  methods: {
-    convertTwitchMessageToMarkup(msg) {
-      return fromTwitchMessage(msg);
     },
   },
 };

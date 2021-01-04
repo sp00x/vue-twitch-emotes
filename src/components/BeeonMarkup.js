@@ -7,8 +7,8 @@ import escapeRegex from "escape-string-regexp";
 
 export const TwitchConfig = {
   class: "twitchEmote",
-  size: 1,
-  version: "1"
+  size: null,
+  version: null
 };
 
 export const DefaultConfig = {
@@ -36,103 +36,124 @@ export function registerHandlebarsHelpers(handlebars) {
   });
 }
 
-export function escape(text, config) {
-  config = { ...DefaultConfig, ...config };
-  let escapeRawRegex = new RegExp(escapeRegex(config.escape), "g");
-  return text.replace(escapeRawRegex, config.escapeAs);
-}
+export class BeeonMarkup {
+  constructor(config = null) {
+    config = this.config = { ...DefaultConfig, ...config };
+    this.escapeRawRegex = new RegExp(escapeRegex(config.escape), "g");
+  }
 
-/** Convert a Twitch message with optional emotes to a markup message */
-export function fromTwitchMessage(msg, config) {
-  config = { ...DefaultConfig, ...config };
-  let message = msg.message;
-  if (msg.emotes != null && msg.emotes.length) {
-    let runs = msg.emotes
-      .split("/")
-      .map((x) => x.split(":"))
-      .map((emote) => {
-        let [from, to] = emote[1].split("-").map((x) => parseInt(x, 10));
-        return { from, to, id: emote[0] };
+  /** Escape a non-markup sequence */
+  escape(text) {
+    const { config, escapeRawRegex } = this;
+    return text.replace(escapeRawRegex, config.escapeAs);
+  }
+
+  /** Convert a Twitch message with optional emotes to a markup message */
+  fromTwitchMessage(msg) {
+    const { config } = this;
+    let message = msg.message;
+    if (msg.emotes != null && msg.emotes.length) {
+      let runs = msg.emotes
+        .split("/")
+        .map((x) => x.split(":"))
+        .map((emote) => {
+          let [from, to] = emote[1].split("-").map((x) => parseInt(x, 10));
+          return { from, to, id: emote[0] };
+        });
+
+      let o = 0;
+      let runs2 = runs.flatMap((e) => {
+        let oo = o;
+        o = e.to + 1;
+        return [{ from: oo, to: e.from }, e];
       });
+      runs2.push({ from: o, to: message.length + 1 });
 
-    let o = 0;
-    let runs2 = runs.flatMap((e) => {
-      let oo = o;
-      o = e.to + 1;
-      return [{ from: oo, to: e.from }, e];
-    });
-    runs2.push({ from: o, to: message.length + 1 });
+      message = runs2
+        .map((e) => {
+          return e.id !== undefined
+            ? `${config.startTag}twitchEmote ${e.id}${config.endTag}`
+            : this.escape(message.substr(e.from, e.to - e.from));
+        })
+        .join("");
+    }
+    return message;
+  }
 
-    message = runs2
+  /** Convert markup to an HTML string */
+  toHTML(text) {
+    const { config } = this;
+    return this.parse(text, config)
       .map((e) => {
-        return e.id !== undefined
-          ? `${config.startTag}twitchEmote ${e.id}${config.endTag}`
-          : escape(message.substr(e.from, e.to - e.from));
+        if (typeof e === "string") return encode(e);
+        else {
+          if (e.tag === "twitchEmote") {
+            return `<img class="${config.twitch.class}" src="https://static-cdn.jtvnw.net/emoticons/v${config.twitch.version}/${e.args}/${config.twitch.size}.0">`;
+          } else {
+            return `?`;
+          }
+        }
       })
       .join("");
   }
-  return message;
-}
 
-/** Convert markup to an HTML string */
-export function toHTML(text, config) {
-  config = { ...DefaultConfig, ...config };
-  return parse(text, config)
-    .map((e) => {
-      if (typeof e === "string") return encode(e);
-      else {
-        if (e.tag === "twitchEmote") {
-          return `<img class="${config.twitch.class}" src="https://static-cdn.jtvnw.net/emoticons/v${config.twitch.version}/${e.args}/${config.twitch.size}.0">`;
-        } else {
-          return `?`;
+  /** Convert markup to a Handlebars template */
+  toHandlebarsTemplate(text) {
+    const { config } = this;
+    return this.parse(text, config)
+      .map((e) => {
+        if (typeof e === "string") return encode(e.replace(/\{\{/g, "\\{{"));
+        else {
+          if (e.tag === "twitchEmote") {
+            return (
+              "{{{" +
+              [
+                "twitchEmote",
+                e.args,
+                config.twitch.version
+                  ? `version=${config.twitch.version}`
+                  : null,
+                config.twitch.size ? `size=${config.twitch.size}` : null
+              ]
+                .join(" ")
+                .trim() +
+              "}}}"
+            );
+          } else {
+            return `?`;
+          }
         }
-      }
-    })
-    .join("");
-}
-
-/** Convert markup to a Handlebars template */
-export function toHandlebarsTemplate(text, config) {
-  config = { ...DefaultConfig, ...config };
-  return parse(text, config)
-    .map((e) => {
-      if (typeof e === "string") return encode(e.replace(/\{\{/g, "\\{{"));
-      else {
-        if (e.tag === "twitchEmote") {
-          return `{{{twitchEmote ${e.args} version=${config.twitch.version} size=${config.twitch.size}}}}`;
-        } else {
-          return `?`;
-        }
-      }
-    })
-    .join("");
-}
-
-/** Parse markup and return as an array of elements */
-export function parse(text, config) {
-  config = { ...DefaultConfig, ...config };
-  let expr = new RegExp(
-    `(${escapeRegex(config.startTag)}.*?${escapeRegex(config.endTag)})`
-  );
-  let runs = text.split(expr).map((s) => {
-    if (s === config.escapeAs) return config.escape;
-    else if (s.startsWith(config.startTag) && s.endsWith(config.endTag)) {
-      s = s.substring(config.startTag.length, s.length - config.endTag.length);
-      let ss = s.split(/\s+/, 2);
-      return { tag: ss[0], args: ss[1] };
-    } else return s;
-  });
-  // compress any sequences of strings into a single string
-  let runs2 = [];
-  for (let i = 0; runs.length > i; i++) {
-    if (
-      typeof runs[i] === "string" &&
-      typeof runs2[runs2.length - 1] === "string"
-    ) {
-      runs2[runs2.length - 1] += runs[i];
-    } else runs2.push(runs[i]);
+      })
+      .join("");
   }
-  return runs2;
-}
 
-function resolveConfig(...configs) {}
+  /** Parse markup and return as an array of elements */
+  parse(text) {
+    const { config } = this;
+    let expr = new RegExp(
+      `(${escapeRegex(config.startTag)}.*?${escapeRegex(config.endTag)})`
+    );
+    let runs = text.split(expr).map((s) => {
+      if (s === config.escapeAs) return config.escape;
+      else if (s.startsWith(config.startTag) && s.endsWith(config.endTag)) {
+        s = s.substring(
+          config.startTag.length,
+          s.length - config.endTag.length
+        );
+        let ss = s.split(/\s+/, 2);
+        return { tag: ss[0], args: ss[1] };
+      } else return s;
+    });
+    // compress any sequences of strings into a single string
+    let runs2 = [];
+    for (let i = 0; runs.length > i; i++) {
+      if (
+        typeof runs[i] === "string" &&
+        typeof runs2[runs2.length - 1] === "string"
+      ) {
+        runs2[runs2.length - 1] += runs[i];
+      } else runs2.push(runs[i]);
+    }
+    return runs2;
+  }
+}
