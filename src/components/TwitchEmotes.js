@@ -2,7 +2,10 @@ import { decode } from "he";
 
 /** Convert (xxx) groups into (?:xxx) to avoid causing capture groups */
 function ungroupParas(s) {
-  return s.replace(/(?<!\\)\(/g, "(?:");
+  return s.replace(/(?<!\\)\((?!\?:)/g, "(?:");
+  // (?<!\\)    negative lookbehind: do not patch if \(
+  // \(         match (
+  // (?!\?:)    negative lookahead: do not patch if already (?: non-capture group
 }
 
 /** Unescape '\x' sequences by just replacing with 'x' */
@@ -114,6 +117,7 @@ export const EmotesComp = {
           regex: new RegExp("^" + e.code + "$")
         };
       });
+
       return merged;
     },
     emotesRegexp() {
