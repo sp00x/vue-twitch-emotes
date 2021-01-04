@@ -1,3 +1,20 @@
+/*
+
+npm i -S he escape-string-regexp
+
+Then something like:
+
+import { BeeonMarkup, registerHandlebarsHelpers } from "./BeeonMarkup.js"
+
+registerHandlebarsHelpers(Handlebars); // or write your own
+
+const markup = new BeeonMarkup();
+let text = markup.fromTwitchMessage({ message: .., emotes: .. });
+let tpl = markup.toHandlebarsTemplate(text);
+let html = tpl({});
+
+*/
+
 import { encode } from "he";
 
 import escapeRegex from "escape-string-regexp";

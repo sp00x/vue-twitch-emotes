@@ -1,46 +1,37 @@
 <script>
-import { DefaultConfig, parse } from "./BeeonMarkup.js";
-
 export default {
   name: "beeon-markup",
   props: {
+    markup: {
+      type: Object,
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
     scope: {
       type: String,
       default: null,
       required: false,
     },
-    text: {
-      type: String,
-      default: "",
-      required: false,
-    },
-    config: {
-      type: Object,
-      default() {
-        return {};
-      },
-    },
-  },
-  computed: {
-    resolvedConfig() {
-      return { ...DefaultConfig, ...this.config };
-    },
   },
   render(h) {
-    let config = this.resolvedConfig;
-    let elems = parse(this.text, config).map((e) => {
+    //let markup = new BeeonMarkup(this.config);
+    const { markup } = this;
+    let elems = markup.parse(this.text).map((e) => {
       if (typeof e === "string") {
         return e;
       } else {
         if (e.tag === "twitchEmote") {
           return h("img", {
-            class: config.twitch.class,
+            class: markup.config.twitch.class,
             attrs: {
               [this.scope]: "",
               [this.$parent.$options._scopeId]: "",
               src: `https://static-cdn.jtvnw.net/emoticons/v${
-                config.twitch.version || "1"
-              }/${e.args}/${config.twitch.size || "1"}.0`,
+                markup.config.twitch.version || "1"
+              }/${e.args}/${markup.config.twitch.size || "1"}.0`,
             },
           });
         } else {
@@ -48,7 +39,7 @@ export default {
         }
       }
     });
-    return h(config.el, elems);
+    return h(markup.config.el, elems);
   },
 };
 </script>

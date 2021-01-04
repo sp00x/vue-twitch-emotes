@@ -14,7 +14,7 @@
     <input type="text" readonly :value="markupText" />
 
     <h2>Render:</h2>
-    <beeon-markup :text="markupText" /><br />
+    <beeon-markup :markup="markup" :text="markupText" /><br />
 
     <h2>HTML:</h2>
     {{ renderedMarkup }}<br />
@@ -43,6 +43,7 @@ export default {
   components: { "beeon-markup": BeeonMarkupComp },
   data() {
     return {
+      markup: Object.freeze(markup),
       msg: {
         message:
           "if you win now gmbenjSUSPICIOUS nakamuraPogChamp ;< {{{}}} 😀🤶🎅👮‍♀️👮‍♂️👳‍♀️👳‍♂️",
