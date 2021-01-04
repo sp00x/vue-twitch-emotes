@@ -38,7 +38,9 @@ export default {
             attrs: {
               [this.scope]: "",
               [this.$parent.$options._scopeId]: "",
-              src: `https://static-cdn.jtvnw.net/emoticons/v${config.twitch.version}/${e.args}/${config.twitch.size}.0`,
+              src: `https://static-cdn.jtvnw.net/emoticons/v${
+                config.twitch.version || "1"
+              }/${e.args}/${config.twitch.size || "1"}.0`,
             },
           });
         } else {

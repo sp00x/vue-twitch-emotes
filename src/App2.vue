@@ -33,10 +33,7 @@
 <script>
 import Handlebars from "handlebars";
 import BeeonMarkupComp from "@/components/BeeonMarkup.vue";
-import {
-  BeeonMarkup,
-  registerHandlebarsHelpers,
-} from "@/components/BeeonMarkup.js";
+import { BeeonMarkup, registerHandlebarsHelpers } from "@/lib/BeeonMarkup.js";
 
 registerHandlebarsHelpers(Handlebars);
 

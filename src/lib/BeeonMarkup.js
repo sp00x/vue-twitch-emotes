@@ -88,7 +88,11 @@ export class BeeonMarkup {
         if (typeof e === "string") return encode(e);
         else {
           if (e.tag === "twitchEmote") {
-            return `<img class="${config.twitch.class}" src="https://static-cdn.jtvnw.net/emoticons/v${config.twitch.version}/${e.args}/${config.twitch.size}.0">`;
+            return `<img class="${
+              config.twitch.class
+            }" src="https://static-cdn.jtvnw.net/emoticons/v${
+              config.twitch.version || "1"
+            }/${e.args}/${config.twitch.size || "1"}.0">`;
           } else {
             return `?`;
           }
