@@ -28,18 +28,23 @@ export const DefaultConfig = {
 /** Install markup rendering methods in a Handlebars instance */
 export function registerHandlebarsHelpers(handlebars) {
   handlebars.registerHelper("twitchEmote", (id, options) => {
-    let size = options.size ?? 1; // 1, 2, 3
-    let version = options.version ?? "1"; // always 1
-    let class_ = options.class ?? "";
+    let size = options.size || 1; // 1, 2, 3
+    let version = options.version || "1"; // always 1
+    let class_ = options.class || "";
     let html = `<img src="https://static-cdn.jtvnw.net/emoticons/v${version}/${id}/${size}.0" class="${class_}">`;
     return html;
   });
 }
 
+export function escape(text, config) {
+  config = { ...DefaultConfig, ...config };
+  let escapeRawRegex = new RegExp(escapeRegex(config.escape), "g");
+  return text.replace(escapeRawRegex, config.escapeAs);
+}
+
 /** Convert a Twitch message with optional emotes to a markup message */
 export function fromTwitchMessage(msg, config) {
   config = { ...DefaultConfig, ...config };
-  let escapeRawRegex = new RegExp(escapeRegex(config.escape), "g");
   let message = msg.message;
   if (msg.emotes != null && msg.emotes.length) {
     let runs = msg.emotes
@@ -62,9 +67,7 @@ export function fromTwitchMessage(msg, config) {
       .map((e) => {
         return e.id !== undefined
           ? `${config.startTag}twitchEmote ${e.id}${config.endTag}`
-          : message
-              .substr(e.from, e.to - e.from)
-              .replace(escapeRawRegex, config.escapeAs);
+          : escape(message.substr(e.from, e.to - e.from));
       })
       .join("");
   }

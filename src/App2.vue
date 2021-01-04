@@ -38,6 +38,7 @@ import {
   toHandlebarsTemplate,
   fromTwitchMessage,
   registerHandlebarsHelpers,
+  escape,
 } from "@/components/BeeonMarkup.js";
 
 registerHandlebarsHelpers(Handlebars);
