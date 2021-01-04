@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@vue/cli-plugin-babel": "4.1.1",
+    "escape-string-regexp": "4.0.0",
+    "handlebars": "4.7.6",
     "he": "1.2.0",
     "vue": "^2.6.11"
   },

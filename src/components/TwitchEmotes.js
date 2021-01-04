@@ -1,3 +1,5 @@
+// *** THIS IS NO LONGER IN USE ***
+
 import { decode } from "he";
 
 /** Convert (xxx) groups into (?:xxx) to avoid causing capture groups */
